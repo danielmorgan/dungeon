@@ -2,7 +2,7 @@ import Konva from 'konva';
 
 window.addEventListener('load', function() {
   const grid = {
-    size: 6,
+    size: 10,
     width: 900 + 1,
     height: 600 + 1
   };
@@ -46,8 +46,8 @@ window.addEventListener('load', function() {
   function generateRoom(id, minLength, maxLength) {
     let width = (randomInt(minLength, maxLength) + 1) * grid.size;
     let height = (randomInt(minLength, maxLength) + 1) * grid.size;
-    let x = randomInt(1, (grid.width - width - grid.size) / grid.size - 1) * grid.size - (grid.size / 2) + 0.5;
-    let y = randomInt(1, (grid.height - height - grid.size) / grid.size - 1) * grid.size - (grid.size / 2) + 0.5;
+    let x = randomInt(1, (grid.width - width - grid.size) / grid.size - 1) * grid.size - (grid.size) + 0.5;
+    let y = randomInt(1, (grid.height - height - grid.size) / grid.size - 1) * grid.size - (grid.size) + 0.5;
 
     return {
       id: id,
@@ -56,17 +56,13 @@ window.addEventListener('load', function() {
       x: x,
       y: y
     }
-
-    function randomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1) + min);
-    }
   }
 
   let rooms = [];
   let roomLimit = 100;
   let i;
   for (i = 0; i < 1000; i++) {
-    let room = generateRoom(i, 6, 12);
+    let room = generateRoom(i, 4, 8);
 
     if (! collidesWithExistingRooms(room)) {
       rooms.push(room);
@@ -81,10 +77,10 @@ window.addEventListener('load', function() {
   function collidesWithExistingRooms(rect) {
     for (let existingRoom of rooms) {
       if (
-        rect.x                - (grid.size * 2) < existingRoom.x + existingRoom.width   &&
-        rect.x + rect.width   + (grid.size * 2) > existingRoom.x                        &&
-        rect.y                - (grid.size * 2) < existingRoom.y + existingRoom.height  &&
-        rect.y + rect.height  + (grid.size * 2) > existingRoom.y
+        rect.x                - (grid.size) < existingRoom.x + existingRoom.width   &&
+        rect.x + rect.width   + (grid.size) > existingRoom.x                        &&
+        rect.y                - (grid.size) < existingRoom.y + existingRoom.height  &&
+        rect.y + rect.height  + (grid.size) > existingRoom.y
       ) {
         return true;
       }
@@ -93,14 +89,22 @@ window.addEventListener('load', function() {
     return false;
   }
 
+  function randomRgba(alpha = 1) {
+    return 'rgba('+randomInt(0, 20)+', '+randomInt(20, 120)+', '+randomInt(100, 220)+', '+alpha+')';
+
+  }
+
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
   for (let room of rooms) {
     let roomGraphic = new Konva.Rect({
       x: room.x,
       y: room.y,
       width: room.width,
       height: room.height,
-      strokeWidth: grid.size,
-      stroke: 'rgba(50, 90, 120, 0.75)'
+      fill: randomRgba(0.5)
     });
     roomsLayer.add(roomGraphic);
   }
