@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:300,700,900');
+
+@import 'bootstrap-custom';
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: $gray-lighter;
+}
+
+.col-xs-12 {
+  text-align: center;
+}
+
+#game {
+  width: 800px;
+  height: 600px;
+  margin: 2rem auto;
+  border: 1px solid #eee;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
