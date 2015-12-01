@@ -2,7 +2,7 @@ import Konva from 'konva';
 
 window.addEventListener('load', function() {
   const grid = {
-    size: 6,
+    size: 20,
     width: 900 + 1,
     height: 600 + 1
   };
@@ -63,7 +63,7 @@ window.addEventListener('load', function() {
   let roomLimit = 100;
   let i;
   for (i = 0; i < 1000; i++) {
-    let room = generateRoom(i, 4, 8);
+    let room = generateRoom(i, 3, 4);
 
     if (! collidesWithExistingRooms(room)) {
       rooms.push(room);
@@ -101,6 +101,14 @@ window.addEventListener('load', function() {
 
 
 
+
+
+
+
+
+
+
+
   // build graph
   let graph = []
   let id = 0;
@@ -115,7 +123,6 @@ window.addEventListener('load', function() {
     }
   }
   
-  // hunt-and-kill algorithm
   let directions = [
     { x: 0, y: -1 }, // north
     { x: 1, y: 0 }, // east
@@ -123,25 +130,70 @@ window.addEventListener('load', function() {
     { x: -1, y: 0 } // west
   ];
 
-  function visitCells() {
-    let randomCell = graph[randomInt(0, graph.length)];
-    randomCell.visited = true;
+  // hunt-and-kill algorithm
+  function visitCells(passedCell) {
+    let cell = passedCell || graph[randomInt(0, graph.length - 1)];
 
+    if (!passedCell) {
+      // console.log('visiting cells');
+    }
+    // console.log(cell);
     let cellGraphic = new Konva.Rect({
-      x: randomCell.x * grid.size,
-      y: randomCell.y * grid.size,
+      x: cell.x * grid.size + 0.5,
+      y: cell.y * grid.size + 0.5,
       width: grid.size,
       height: grid.size,
       fill: 'rgba(0, 0, 0, 0.25)'
     });
     corridorLayer.add(cellGraphic);
+    cell.visited = true;
+    moveToNextCell(randomInt(0, directions.length - 1));
 
-    let randomDirection = directions[randomInt(0, 3)];
-    console.log(randomDirection);
+    function moveToNextCell(directionIndex) {
+      let nextCell = findNextCell(directions[directionIndex]);
+      let directionChangeAttempts = 0;
+
+      if (typeof nextCell === 'undefined') {
+        let newDirection = directions[getNewDirectionIndex(directionIndex)];
+        nextCell = findNextCell(newDirection);
+      } else {
+        if (nextCell.visited) {
+          visitCells();
+        } else {
+          visitCells(nextCell);
+        }
+      }
+
+      function getNewDirectionIndex(directionIndex) {
+        directionChangeAttempts = directionChangeAttempts + 1;
+        // console.log('directionChangeAttempts', directionChangeAttempts);
+
+        if (directionChangeAttempts > directions.length - 1) {
+          // console.log('getNewDirectionIndex if')
+          visitCells();
+        }
+        else if (directionIndex < directions.length - 1) {
+          // console.log('getNewDirectionIndex changing direction to', directionIndex + 1)
+          return directionIndex + 1;
+        }
+        else {
+          // console.log('getNewDirectionIndex else', 0)
+          return 0;
+        }
+      }
+    }
+
+    function findNextCell(direction) {
+      return graph.filter(function(node, index, graph) {
+        if (node.x === cell.x - direction.x &&
+          node.y === cell.y - direction.y) {
+          return true;
+        }
+      })[0];
+    }
   }
 
   visitCells();
-
 
 
 
