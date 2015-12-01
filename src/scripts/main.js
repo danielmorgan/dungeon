@@ -2,7 +2,7 @@ import Konva from 'konva';
 
 window.addEventListener('load', function() {
   const grid = {
-    size: 10,
+    size: 6,
     width: 900 + 1,
     height: 600 + 1
   };
@@ -15,6 +15,7 @@ window.addEventListener('load', function() {
   let backgroundLayer = new Konva.Layer();
   let gridLayer = new Konva.Layer();
   let roomsLayer = new Konva.Layer();
+  let corridorLayer = new Konva.Layer();
 
   for (let i = 0; i < stage.getWidth() / grid.size; i++) {
     let verticalLine = new Konva.Line({
@@ -98,6 +99,58 @@ window.addEventListener('load', function() {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
+
+
+  // build graph
+  let graph = []
+  let id = 0;
+  for (let y = 0; y < (stage.getHeight() / grid.size) - 1; y++) {
+    for (let x = 0; x < (stage.getWidth() / grid.size) - 1; x++) {
+      graph.push({
+        id: id++,
+        x: x,
+        y: y,
+        visited: false
+      });
+    }
+  }
+  
+  // hunt-and-kill algorithm
+  let directions = [
+    { x: 0, y: -1 }, // north
+    { x: 1, y: 0 }, // east
+    { x: 0, y: 1 }, // south
+    { x: -1, y: 0 } // west
+  ];
+
+  function visitCells() {
+    let randomCell = graph[randomInt(0, graph.length)];
+    randomCell.visited = true;
+
+    let cellGraphic = new Konva.Rect({
+      x: randomCell.x * grid.size,
+      y: randomCell.y * grid.size,
+      width: grid.size,
+      height: grid.size,
+      fill: 'rgba(0, 0, 0, 0.25)'
+    });
+    corridorLayer.add(cellGraphic);
+
+    let randomDirection = directions[randomInt(0, 3)];
+    console.log(randomDirection);
+  }
+
+  visitCells();
+
+
+
+
+
+
+
+
+
+
   for (let room of rooms) {
     let roomGraphic = new Konva.Rect({
       x: room.x,
@@ -117,5 +170,5 @@ window.addEventListener('load', function() {
     fill: 'white'
   }));
 
-  stage.add(backgroundLayer, gridLayer, roomsLayer);
+  stage.add(backgroundLayer, gridLayer, roomsLayer, corridorLayer);
 });
