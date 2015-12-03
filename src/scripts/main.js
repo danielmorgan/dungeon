@@ -1,8 +1,10 @@
 import Konva from 'konva';
 
 window.addEventListener('load', function() {
+
+  // stage and grid
   const grid = {
-    size: 20,
+    size: 10,
     width: 900 + 1,
     height: 600 + 1
   };
@@ -44,21 +46,11 @@ window.addEventListener('load', function() {
   gridLayer.x(1);
   gridLayer.y(1);
 
-  function generateRoom(id, minLength, maxLength) {
-    let width = (randomInt(minLength, maxLength) + 1) * grid.size;
-    let height = (randomInt(minLength, maxLength) + 1) * grid.size;
-    let x = randomInt(1, (grid.width - width - grid.size) / grid.size - 1) * grid.size - (grid.size) + 0.5;
-    let y = randomInt(1, (grid.height - height - grid.size) / grid.size - 1) * grid.size - (grid.size) + 0.5;
 
-    return {
-      id: id,
-      width: width,
-      height: height,
-      x: x,
-      y: y
-    }
-  }
 
+
+
+  // build rooms
   let rooms = [];
   let roomLimit = 100;
   let i;
@@ -74,6 +66,24 @@ window.addEventListener('load', function() {
     }
   }
   console.log('Generated', rooms.length, 'rooms in', i, 'attempts');
+
+  function generateRoom(id, minLength, maxLength) {
+    return {
+      id: id,
+      width: (randomInt(minLength, maxLength) + 1) * grid.size,
+      height: (randomInt(minLength, maxLength) + 1) * grid.size,
+      x: randomPos(grid.width, maxLength, 3) + 0.5,
+      y: randomPos(grid.height, maxLength, 3) + 0.5
+    }
+  }
+
+  function randomPos(axisLength, maxLengthOfRoom, padding) {
+    let maxLengthOfRoomInPixels = maxLengthOfRoom * grid.size;
+    let distanceFromStartEdge = padding * grid.size;
+    let distanceFromEndEdge = axisLength - (maxLengthOfRoom * grid.size) - ((padding + 1) * grid.size);
+    let pos = randomInt(distanceFromStartEdge, distanceFromEndEdge);
+    return Math.round(pos / grid.size) * grid.size;
+  }
 
   function collidesWithExistingRooms(rect) {
     for (let existingRoom of rooms) {
@@ -92,13 +102,24 @@ window.addEventListener('load', function() {
 
   function randomRgba(alpha = 1) {
     return 'rgba('+randomInt(0, 20)+', '+randomInt(20, 120)+', '+randomInt(100, 220)+', '+alpha+')';
-
   }
 
   function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
+
+  // draw rooms
+  for (let room of rooms) {
+    let roomGraphic = new Konva.Rect({
+      x: room.x,
+      y: room.y,
+      width: room.width,
+      height: room.height,
+      fill: randomRgba(0.5)
+    });
+    roomsLayer.add(roomGraphic);
+  }
 
 
 
@@ -139,11 +160,11 @@ window.addEventListener('load', function() {
     }
     // console.log(cell);
     let cellGraphic = new Konva.Rect({
-      x: cell.x * grid.size + 0.5,
-      y: cell.y * grid.size + 0.5,
-      width: grid.size,
-      height: grid.size,
-      fill: 'rgba(0, 0, 0, 0.25)'
+      x: cell.x * grid.size,
+      y: cell.y * grid.size,
+      width: grid.size + 1,
+      height: grid.size + 1,
+      fill: 'rgba(200, 40, 60, 1)'
     });
     corridorLayer.add(cellGraphic);
     cell.visited = true;
@@ -199,20 +220,6 @@ window.addEventListener('load', function() {
 
 
 
-
-
-
-
-  for (let room of rooms) {
-    let roomGraphic = new Konva.Rect({
-      x: room.x,
-      y: room.y,
-      width: room.width,
-      height: room.height,
-      fill: randomRgba(0.5)
-    });
-    roomsLayer.add(roomGraphic);
-  }
 
   backgroundLayer.add(new Konva.Rect({
     x: 0,
