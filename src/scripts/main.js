@@ -5,6 +5,7 @@ window.addEventListener('load', function() {
   // stage and grid
   const grid = {
     size: 10,
+    padding: 3,
     width: 900 + 1,
     height: 600 + 1
   };
@@ -55,7 +56,7 @@ window.addEventListener('load', function() {
   let roomLimit = 100;
   let i;
   for (i = 0; i < 1000; i++) {
-    let room = generateRoom(i, 3, 4);
+    let room = generateRoom(i, 4, 6);
 
     if (! collidesWithExistingRooms(room)) {
       rooms.push(room);
@@ -77,10 +78,10 @@ window.addEventListener('load', function() {
     }
   }
 
-  function randomPos(axisLength, maxLengthOfRoom, padding) {
+  function randomPos(axisLength, maxLengthOfRoom) {
     let maxLengthOfRoomInPixels = maxLengthOfRoom * grid.size;
-    let distanceFromStartEdge = padding * grid.size;
-    let distanceFromEndEdge = axisLength - (maxLengthOfRoom * grid.size) - ((padding + 1) * grid.size);
+    let distanceFromStartEdge = grid.padding * grid.size;
+    let distanceFromEndEdge = axisLength - (maxLengthOfRoom * grid.size) - ((grid.padding + 1) * grid.size);
     let pos = randomInt(distanceFromStartEdge, distanceFromEndEdge);
     return Math.round(pos / grid.size) * grid.size;
   }
@@ -88,10 +89,10 @@ window.addEventListener('load', function() {
   function collidesWithExistingRooms(rect) {
     for (let existingRoom of rooms) {
       if (
-        rect.x                - (grid.size) < existingRoom.x + existingRoom.width   &&
-        rect.x + rect.width   + (grid.size) > existingRoom.x                        &&
-        rect.y                - (grid.size) < existingRoom.y + existingRoom.height  &&
-        rect.y + rect.height  + (grid.size) > existingRoom.y
+        rect.x                - (grid.size * grid.padding) < existingRoom.x + existingRoom.width   &&
+        rect.x + rect.width   + (grid.size * grid.padding) > existingRoom.x                        &&
+        rect.y                - (grid.size * grid.padding) < existingRoom.y + existingRoom.height  &&
+        rect.y + rect.height  + (grid.size * grid.padding) > existingRoom.y
       ) {
         return true;
       }
@@ -143,7 +144,7 @@ window.addEventListener('load', function() {
       });
     }
   }
-  
+
   let directions = [
     { x: 0, y: -1 }, // north
     { x: 1, y: 0 }, // east
