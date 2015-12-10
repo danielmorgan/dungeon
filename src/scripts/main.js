@@ -5,7 +5,7 @@ window.addEventListener('load', function() {
   // stage and grid
   const grid = {
     size: 10,
-    padding: 3,
+    padding: 1,
     width: 900 + 1,
     height: 600 + 1
   };
@@ -109,6 +109,10 @@ window.addEventListener('load', function() {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
+  function random(arr) {
+    return arr[randomInt(0, arr.length - 1)];
+  }
+
 
   // draw rooms
   for (let room of rooms) {
@@ -146,79 +150,72 @@ window.addEventListener('load', function() {
   }
 
   let directions = [
-    { x: 0, y: -1 }, // north
-    { x: 1, y: 0 }, // east
-    { x: 0, y: 1 }, // south
-    { x: -1, y: 0 } // west
+    { x: 0, y: -1, checked: false }, // north
+    { x: 1, y: 0, checked: false }, // east
+    { x: 0, y: 1, checked: false }, // south
+    { x: -1, y: 0, checked: false } // west
   ];
 
   // hunt-and-kill algorithm
-  function visitCells(passedCell) {
-    let cell = passedCell || graph[randomInt(0, graph.length - 1)];
-
-    if (!passedCell) {
-      // console.log('visiting cells');
+  let k = 0;
+  drawCorridor();
+  function drawCorridor(node = false) {
+    k = k + 1;
+    if (! node) node = random(graph);
+    let nextNode = move(node);
+    node.visited = true;
+    console.log(node.x, node.y);
+    if (k < 20) {
+      drawCorridor(nextNode);
     }
-    // console.log(cell);
-    let cellGraphic = new Konva.Rect({
-      x: cell.x * grid.size,
-      y: cell.y * grid.size,
-      width: grid.size + 1,
-      height: grid.size + 1,
-      fill: 'rgba(200, 40, 60, 1)'
-    });
-    corridorLayer.add(cellGraphic);
-    cell.visited = true;
-    moveToNextCell(randomInt(0, directions.length - 1));
 
-    function moveToNextCell(directionIndex) {
-      let nextCell = findNextCell(directions[directionIndex]);
-      let directionChangeAttempts = 0;
+    function move(from, directionIndex = 0) {
+      let direction = directions[directionIndex];
 
-      if (typeof nextCell === 'undefined') {
-        let newDirection = directions[getNewDirectionIndex(directionIndex)];
-        nextCell = findNextCell(newDirection);
+      var nextNode = graph.filter(node =>
+        node.x === from.x + direction.x &&
+        node.y === from.y + direction.y)[0];
+
+      direction.checked = true;
+      console.log();
+
+      // reached end of the graph
+      if (typeof nextNode === 'undefined') {
+        drawCorridor();
+        return;
+      }
+
+      if (allDirectionsChecked()) {
+        console.log('all directions checked', directions);
+        drawCorridor();
+        return;
+      }
+
+      if (nextNode.visited) {
+        move(from);
       } else {
-        if (nextCell.visited) {
-          visitCells();
-        } else {
-          visitCells(nextCell);
-        }
+        return nextNode;
       }
 
-      function getNewDirectionIndex(directionIndex) {
-        directionChangeAttempts = directionChangeAttempts + 1;
-        // console.log('directionChangeAttempts', directionChangeAttempts);
-
-        if (directionChangeAttempts > directions.length - 1) {
-          // console.log('getNewDirectionIndex if')
-          visitCells();
-        }
-        else if (directionIndex < directions.length - 1) {
-          // console.log('getNewDirectionIndex changing direction to', directionIndex + 1)
-          return directionIndex + 1;
-        }
-        else {
-          // console.log('getNewDirectionIndex else', 0)
-          return 0;
-        }
+      function allDirectionsChecked() {
+        return directions.map(d => d.checked).every(d => d);
       }
-    }
-
-    function findNextCell(direction) {
-      return graph.filter(function(node, index, graph) {
-        if (node.x === cell.x - direction.x &&
-          node.y === cell.y - direction.y) {
-          return true;
-        }
-      })[0];
     }
   }
 
-  visitCells();
 
 
 
+  // draw corridors
+  for (let node of graph.filter(n => n.visited)) {
+    corridorLayer.add(new Konva.Rect({
+      x: node.x * grid.size + 1,
+      y: node.y * grid.size + 1,
+      width: grid.size - 1,
+      height: grid.size - 1,
+      fill: 'red'
+    }));
+  }
 
 
 
@@ -230,5 +227,5 @@ window.addEventListener('load', function() {
     fill: 'white'
   }));
 
-  stage.add(backgroundLayer, gridLayer, roomsLayer, corridorLayer);
+  stage.add(backgroundLayer, gridLayer, corridorLayer);
 });
