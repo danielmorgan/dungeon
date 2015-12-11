@@ -4,7 +4,7 @@ window.addEventListener('load', function() {
 
   // stage and grid
   const grid = {
-    size: 10,
+    size: 50,
     padding: 1,
     width: 900 + 1,
     height: 600 + 1
@@ -150,10 +150,10 @@ window.addEventListener('load', function() {
   }
 
   let directions = [
-    { x: 0, y: -1, checked: false }, // north
-    { x: 1, y: 0, checked: false }, // east
-    { x: 0, y: 1, checked: false }, // south
-    { x: -1, y: 0, checked: false } // west
+    { name: 'north', x: 0, y: -1, checked: false },
+    { name: 'east ', x: 1, y: 0, checked: false },
+    { name: 'south', x: 0, y: 1, checked: false },
+    { name: 'west ', x: -1, y: 0, checked: false }
   ];
 
   // hunt-and-kill algorithm
@@ -162,40 +162,52 @@ window.addEventListener('load', function() {
   function drawCorridor(node = false) {
     k = k + 1;
     if (! node) node = random(graph);
+    console.log('         start = ' + node.x + ',' + node.y);
     let nextNode = move(node);
     node.visited = true;
-    console.log(node.x, node.y);
     if (k < 20) {
       drawCorridor(nextNode);
     }
 
     function move(from, directionIndex = 0) {
-      let direction = directions[directionIndex];
+      let direction = random(directions);
+      direction.checked = true;
 
       var nextNode = graph.filter(node =>
         node.x === from.x + direction.x &&
         node.y === from.y + direction.y)[0];
 
-      direction.checked = true;
-      console.log();
+      console.log(from.x + ',' + from.y, '+ [' + direction.name + ']', '=', nextNode.x + ',' + nextNode.y);
+
+      if (graph.every(n => n.visited)) {
+        console.log('all done');
+        return;
+      }
+
+      // tried to turn into a visited node
+      else if (nextNode.visited) {
+        console.log('already visited');
+        move(from);
+      }
 
       // reached end of the graph
-      if (typeof nextNode === 'undefined') {
-        drawCorridor();
-        return;
-      }
-
-      if (allDirectionsChecked()) {
-        console.log('all directions checked', directions);
-        drawCorridor();
-        return;
-      }
-
-      if (nextNode.visited) {
+      else if (typeof nextNode === 'undefined') {
+        console.log('end of graph');
         move(from);
-      } else {
-        return nextNode;
       }
+
+      // tried to turn every direction
+      else if (allDirectionsChecked()) {
+        directions.map(d => d.checked = false); // reset checked status
+        drawCorridor();
+      }
+
+      else {
+        directions.map(d => d.checked = false); // reset checked status
+        move(nextNode);
+      }
+
+
 
       function allDirectionsChecked() {
         return directions.map(d => d.checked).every(d => d);
