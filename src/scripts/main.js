@@ -20,6 +20,16 @@ window.addEventListener('load', function() {
   let roomsLayer = new Konva.Layer();
   let corridorLayer = new Konva.Layer();
 
+
+  backgroundLayer.add(new Konva.Rect({
+    x: 0,
+    y: 0,
+    width: grid.width,
+    height: grid.height,
+    fill: 'white'
+  }));
+
+
   for (let i = 0; i < stage.getWidth() / grid.size; i++) {
     let verticalLine = new Konva.Line({
       points: [
@@ -127,6 +137,9 @@ window.addEventListener('load', function() {
   }
 
 
+  stage.add(backgroundLayer, gridLayer, corridorLayer);
+
+
 
 
 
@@ -159,13 +172,18 @@ window.addEventListener('load', function() {
   // hunt-and-kill algorithm
   let k = 0;
   drawCorridor();
+  console.log(graph);
   function drawCorridor(node = false) {
     k = k + 1;
     if (! node) node = random(graph);
-    console.log('         start = ' + node.x + ',' + node.y);
-    let nextNode = move(node);
-    node.visited = true;
-    if (k < 20) {
+    console.log('        start = ' + node.x + ',' + node.y);
+    visit(node);
+    move(node);
+
+    // finished drawing corridoors
+    if (graph.every(n => n.visited)) {
+      console.log('all done');
+    } else if (k < 20) {
       drawCorridor(nextNode);
     }
 
@@ -177,15 +195,14 @@ window.addEventListener('load', function() {
         node.x === from.x + direction.x &&
         node.y === from.y + direction.y)[0];
 
-      console.log(from.x + ',' + from.y, '+ [' + direction.name + ']', '=', nextNode.x + ',' + nextNode.y);
-
-      if (graph.every(n => n.visited)) {
-        console.log('all done');
-        return;
+      if (typeof nextNode == 'undefined') {
+        console.log(directions.map(d => d.checked));
       }
 
+      console.log(direction.name, nextNode.x + ',' + nextNode.y);
+
       // tried to turn into a visited node
-      else if (nextNode.visited) {
+      if (nextNode.visited) {
         console.log('already visited');
         move(from);
       }
@@ -203,15 +220,27 @@ window.addEventListener('load', function() {
       }
 
       else {
+        visit(nextNode);
         directions.map(d => d.checked = false); // reset checked status
         move(nextNode);
       }
 
 
-
       function allDirectionsChecked() {
         return directions.map(d => d.checked).every(d => d);
       }
+    }
+
+    function visit(node) {
+      node.visited = true;
+      corridorLayer.add(new Konva.Rect({
+        x: node.x * grid.size + 1,
+        y: node.y * grid.size + 1,
+        width: grid.size - 1,
+        height: grid.size - 1,
+        fill: 'red'
+      }));
+      stage.draw();
     }
   }
 
@@ -220,24 +249,5 @@ window.addEventListener('load', function() {
 
   // draw corridors
   for (let node of graph.filter(n => n.visited)) {
-    corridorLayer.add(new Konva.Rect({
-      x: node.x * grid.size + 1,
-      y: node.y * grid.size + 1,
-      width: grid.size - 1,
-      height: grid.size - 1,
-      fill: 'red'
-    }));
   }
-
-
-
-  backgroundLayer.add(new Konva.Rect({
-    x: 0,
-    y: 0,
-    width: grid.width,
-    height: grid.height,
-    fill: 'white'
-  }));
-
-  stage.add(backgroundLayer, gridLayer, corridorLayer);
 });
